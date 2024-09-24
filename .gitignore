@@ -1,0 +1,44 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+
+# Output directories
+bin/
+build/
+
+# Dependency directories (auto-generated)
+vendor/
+
+# Go workspace file
+go.work
+
+# Logs and temp files
+*.log
+*.out
+*.tmp
+*.swp
+
+# Test binary, coverage files, and test result output
+*.cover
+*.prof
+coverage.out
+
+# IDE/editor directories and files
+.vscode/
+.idea/
+*.iml
+
+# Go specific files
+go.sum
+go.mod.orig
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Miscellaneous
+*.env
+.envrc
