@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "sulemankhann/go-todo-app/cmd"
 
 func main() {
-	fmt.Println("Tasks")
+	cmd.Execute()
 }

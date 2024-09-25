@@ -42,3 +42,6 @@ Thumbs.db
 # Miscellaneous
 *.env
 .envrc
+
+# data file
+data.csv
