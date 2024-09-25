@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"sulemankhann/go-todo-app/internal/task"
+	"github.com/sulemankhann/go-todo-app/internal/task"
 
 	"github.com/spf13/cobra"
 )

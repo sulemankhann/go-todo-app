@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"sulemankhann/go-todo-app/types"
-	"sulemankhann/go-todo-app/utils"
 	"text/tabwriter"
+
+	"github.com/sulemankhann/go-todo-app/types"
+	"github.com/sulemankhann/go-todo-app/utils"
 
 	"github.com/mergestat/timediff"
 )
