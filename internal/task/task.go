@@ -29,6 +29,14 @@ func (tm *TaskManager) ListTask() {
 	printTasks(tasks)
 }
 
+func (tm *TaskManager) CreateTask(description string) {
+	task, err := tm.store.CreateTask(description)
+	if err != nil {
+		panic(err)
+	}
+	printTasks([]types.Task{task})
+}
+
 func printTasks(tasks []types.Task) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 
