@@ -20,10 +20,20 @@ func NewTaskManager(store types.TaskStore) *TaskManager {
 	return &TaskManager{store: store}
 }
 
-func (tm *TaskManager) ListTask() {
+func (tm *TaskManager) ListTask(showAll bool) {
 	tasks, err := tm.store.GetTaskList()
 	if err != nil {
 		panic(err)
+	}
+
+	if !showAll {
+		var incompleteTasks []types.Task
+		for _, t := range tasks {
+			if !t.IsComplete {
+				incompleteTasks = append(incompleteTasks, t)
+			}
+		}
+		tasks = incompleteTasks
 	}
 
 	printTasks(tasks)

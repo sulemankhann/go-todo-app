@@ -6,7 +6,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var showAll bool
+
 func init() {
+	listCmd.Flags().
+		BoolVarP(&showAll, "all", "a", false, "Show all of the tasks")
 	rootCmd.AddCommand(listCmd)
 }
 
@@ -17,6 +21,6 @@ var listCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		taskStore := task.NewCSVStore("data.csv")
 		tm := task.NewTaskManager(taskStore)
-		tm.ListTask()
+		tm.ListTask(showAll)
 	},
 }
