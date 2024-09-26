@@ -25,4 +25,5 @@ type TaskStore interface {
 	GetTaskList() ([]Task, error)
 	CreateTask(description string) (Task, error)
 	MarkTaskCompleted(id int) (Task, error)
+	DeleteTask(id int) error
 }

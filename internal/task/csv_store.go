@@ -79,13 +79,51 @@ func (s *CSVStore) MarkTaskCompleted(id int) (types.Task, error) {
 		return types.Task{}, fmt.Errorf("Task with id %d not found", id)
 	}
 
+	err = writeRecordsToCSV(s.filePath, records)
+	if err != nil {
+		return types.Task{}, err
+	}
+
+	return task, nil
+}
+
+func (s *CSVStore) DeleteTask(id int) error {
+	tasks, err := s.GetTaskList()
+	if err != nil {
+		return err
+	}
+
+	records := [][]string{header}
+	task := types.Task{}
+
+	for _, t := range tasks {
+		if t.Id == id {
+			task = t
+		} else {
+			records = append(records, t.ToCSVRecord())
+		}
+	}
+
+	if task == (types.Task{}) {
+		return fmt.Errorf("Task with id %d not found", id)
+	}
+
+	err = writeRecordsToCSV(s.filePath, records)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func writeRecordsToCSV(filePath string, records [][]string) error {
 	file, err := os.OpenFile(
-		s.filePath,
+		filePath,
 		os.O_WRONLY|os.O_TRUNC|os.O_CREATE,
 		0644,
 	)
 	if err != nil {
-		return types.Task{}, err
+		return err
 	}
 
 	defer file.Close()
@@ -95,10 +133,10 @@ func (s *CSVStore) MarkTaskCompleted(id int) (types.Task, error) {
 
 	err = writer.WriteAll(records)
 	if err != nil {
-		return types.Task{}, err
+		return err
 	}
 
-	return task, nil
+	return nil
 }
 
 func saveTaskToCSV(filePath string, task types.Task, addHeader bool) error {

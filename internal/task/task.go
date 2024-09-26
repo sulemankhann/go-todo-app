@@ -56,7 +56,21 @@ func (tm *TaskManager) CompleteTask(id int) {
 	printTasks([]types.Task{task})
 }
 
+func (tm *TaskManager) DeleteTask(id int) {
+	err := tm.store.DeleteTask(id)
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+}
+
 func printTasks(tasks []types.Task) {
+	if len(tasks) == 0 {
+		fmt.Println(
+			"Yayyy!, You have nothing in todolist, Enjoy your free time :)",
+		)
+		return
+	}
+
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 
 	defer w.Flush()
