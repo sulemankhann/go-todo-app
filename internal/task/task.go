@@ -47,6 +47,15 @@ func (tm *TaskManager) CreateTask(description string) {
 	printTasks([]types.Task{task})
 }
 
+func (tm *TaskManager) CompleteTask(id int) {
+	task, err := tm.store.MarkTaskCompleted(id)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	printTasks([]types.Task{task})
+}
+
 func printTasks(tasks []types.Task) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 

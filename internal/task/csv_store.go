@@ -2,6 +2,7 @@ package task
 
 import (
 	"encoding/csv"
+	"fmt"
 	"os"
 	"time"
 
@@ -50,6 +51,49 @@ func (s *CSVStore) CreateTask(description string) (types.Task, error) {
 	addHeader := len(records) == 0 // if no existing records, add csv header
 
 	err = saveTaskToCSV(s.filePath, task, addHeader)
+	if err != nil {
+		return types.Task{}, err
+	}
+
+	return task, nil
+}
+
+func (s *CSVStore) MarkTaskCompleted(id int) (types.Task, error) {
+	tasks, err := s.GetTaskList()
+	if err != nil {
+		return types.Task{}, err
+	}
+
+	records := [][]string{header}
+	task := types.Task{}
+
+	for _, t := range tasks {
+		if t.Id == id {
+			t.IsComplete = true
+			task = t
+		}
+		records = append(records, t.ToCSVRecord())
+	}
+
+	if task == (types.Task{}) {
+		return types.Task{}, fmt.Errorf("Task with id %d not found", id)
+	}
+
+	file, err := os.OpenFile(
+		s.filePath,
+		os.O_WRONLY|os.O_TRUNC|os.O_CREATE,
+		0644,
+	)
+	if err != nil {
+		return types.Task{}, err
+	}
+
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	err = writer.WriteAll(records)
 	if err != nil {
 		return types.Task{}, err
 	}
