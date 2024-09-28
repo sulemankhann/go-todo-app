@@ -1,32 +1,32 @@
-package task
+package csv
 
 import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
-	"github.com/sulemankhann/go-todo-app/types"
-	"github.com/sulemankhann/go-todo-app/utils"
+	"github.com/sulemankhann/go-todo-app/todo"
 )
 
-type CSVStore struct {
+type Store struct {
 	filePath string
 }
 
 var header = []string{"ID", "Description", "CreatedAt", "IsComplete"}
 
-func NewCSVStore(filePath string) *CSVStore {
-	return &CSVStore{filePath: filePath}
+func NewStore(filePath string) *Store {
+	return &Store{filePath: filePath}
 }
 
-func (s *CSVStore) GetTaskList() ([]types.Task, error) {
+func (s *Store) GetTaskList() ([]todo.Task, error) {
 	records, err := getRawCSVRecords(s.filePath)
 	if err != nil {
 		return nil, err
 	}
 
-	tasks, err := utils.CsvRowsToTasks(records)
+	tasks, err := csvRowsToTasks(records)
 	if err != nil {
 		return nil, err
 	}
@@ -34,14 +34,14 @@ func (s *CSVStore) GetTaskList() ([]types.Task, error) {
 	return tasks, nil
 }
 
-func (s *CSVStore) CreateTask(description string) (types.Task, error) {
+func (s *Store) CreateTask(description string) (todo.Task, error) {
 	records, err := getRawCSVRecords(s.filePath)
 	if err != nil {
-		return types.Task{}, err
+		return todo.Task{}, err
 	}
 
-	id := utils.GetNextUniqueID(records)
-	task := types.Task{
+	id := getNextUniqueID(records)
+	task := todo.Task{
 		Id:          id,
 		Description: description,
 		Created:     time.Now(),
@@ -52,20 +52,20 @@ func (s *CSVStore) CreateTask(description string) (types.Task, error) {
 
 	err = saveTaskToCSV(s.filePath, task, addHeader)
 	if err != nil {
-		return types.Task{}, err
+		return todo.Task{}, err
 	}
 
 	return task, nil
 }
 
-func (s *CSVStore) MarkTaskCompleted(id int) (types.Task, error) {
+func (s *Store) MarkTaskCompleted(id int) (todo.Task, error) {
 	tasks, err := s.GetTaskList()
 	if err != nil {
-		return types.Task{}, err
+		return todo.Task{}, err
 	}
 
 	records := [][]string{header}
-	task := types.Task{}
+	task := todo.Task{}
 
 	for _, t := range tasks {
 		if t.Id == id {
@@ -75,26 +75,26 @@ func (s *CSVStore) MarkTaskCompleted(id int) (types.Task, error) {
 		records = append(records, t.ToCSVRecord())
 	}
 
-	if task == (types.Task{}) {
-		return types.Task{}, fmt.Errorf("Task with id %d not found", id)
+	if task == (todo.Task{}) {
+		return todo.Task{}, fmt.Errorf("Task with id %d not found", id)
 	}
 
 	err = writeRecordsToCSV(s.filePath, records)
 	if err != nil {
-		return types.Task{}, err
+		return todo.Task{}, err
 	}
 
 	return task, nil
 }
 
-func (s *CSVStore) DeleteTask(id int) error {
+func (s *Store) DeleteTask(id int) error {
 	tasks, err := s.GetTaskList()
 	if err != nil {
 		return err
 	}
 
 	records := [][]string{header}
-	task := types.Task{}
+	task := todo.Task{}
 
 	for _, t := range tasks {
 		if t.Id == id {
@@ -104,7 +104,7 @@ func (s *CSVStore) DeleteTask(id int) error {
 		}
 	}
 
-	if task == (types.Task{}) {
+	if task == (todo.Task{}) {
 		return fmt.Errorf("Task with id %d not found", id)
 	}
 
@@ -139,7 +139,7 @@ func writeRecordsToCSV(filePath string, records [][]string) error {
 	return nil
 }
 
-func saveTaskToCSV(filePath string, task types.Task, addHeader bool) error {
+func saveTaskToCSV(filePath string, task todo.Task, addHeader bool) error {
 	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return err
@@ -180,4 +180,59 @@ func getRawCSVRecords(filePath string) ([][]string, error) {
 	}
 
 	return records, nil
+}
+
+// csvRowsToTasks takes a 2D slice of strings (CSV records)
+// and returns []Task
+func csvRowsToTasks(records [][]string) ([]todo.Task, error) {
+	tasks := []todo.Task{}
+	if len(records) == 0 {
+		return tasks, nil
+	}
+
+	// Skip header
+	for _, record := range records[1:] {
+		id, err := strconv.Atoi(record[0])
+		if err != nil {
+			return nil, err
+		}
+
+		createdAt, err := time.Parse(time.RFC3339, record[2])
+		if err != nil {
+			return nil, err
+		}
+
+		isComplete, err := strconv.ParseBool(record[3])
+		if err != nil {
+			return nil, err
+		}
+
+		task := todo.Task{
+			Id:          id,
+			Description: record[1],
+			Created:     createdAt,
+			IsComplete:  isComplete,
+		}
+
+		tasks = append(tasks, task)
+	}
+
+	return tasks, nil
+}
+
+// getNextUniqueID takes a 2D slice of strings (CSV records)
+// and returns the next unique ID based on existing IDs in the records
+func getNextUniqueID(records [][]string) (maxId int) {
+	if len(records) == 0 {
+		return maxId + 1
+	}
+
+	for _, record := range records[1:] { // Skip header
+		id, err := strconv.Atoi(record[0]) // Assuming ID is in the first column
+		if err == nil && id > maxId {
+			maxId = id
+		}
+	}
+
+	return maxId + 1
 }

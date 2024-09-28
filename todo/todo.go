@@ -1,33 +1,55 @@
-package task
+package todo
 
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"text/tabwriter"
-
-	"github.com/sulemankhann/go-todo-app/types"
-	"github.com/sulemankhann/go-todo-app/utils"
+	"time"
 
 	"github.com/mergestat/timediff"
 )
 
-type TaskManager struct {
-	store types.TaskStore
+type Task struct {
+	Id          int
+	Description string
+	Created     time.Time
+	IsComplete  bool
 }
 
-func NewTaskManager(store types.TaskStore) *TaskManager {
-	return &TaskManager{store: store}
+func (t Task) ToCSVRecord() []string {
+	return []string{
+		strconv.Itoa(t.Id),
+		t.Description,
+		t.Created.Format(time.RFC3339),
+		strconv.FormatBool(t.IsComplete),
+	}
 }
 
-func (tm *TaskManager) ListTask(showAll bool) {
+type Store interface {
+	GetTaskList() ([]Task, error)
+	CreateTask(description string) (Task, error)
+	MarkTaskCompleted(id int) (Task, error)
+	DeleteTask(id int) error
+}
+
+type TodoManager struct {
+	store Store
+}
+
+func NewTodoManager(store Store) *TodoManager {
+	return &TodoManager{store: store}
+}
+
+func (tm *TodoManager) ListTask(showAll bool) {
 	tasks, err := tm.store.GetTaskList()
 	if err != nil {
 		panic(err)
 	}
 
 	if !showAll {
-		var incompleteTasks []types.Task
+		var incompleteTasks []Task
 		for _, t := range tasks {
 			if !t.IsComplete {
 				incompleteTasks = append(incompleteTasks, t)
@@ -39,31 +61,31 @@ func (tm *TaskManager) ListTask(showAll bool) {
 	printTasks(tasks)
 }
 
-func (tm *TaskManager) CreateTask(description string) {
+func (tm *TodoManager) CreateTask(description string) {
 	task, err := tm.store.CreateTask(description)
 	if err != nil {
 		panic(err)
 	}
-	printTasks([]types.Task{task})
+	printTasks([]Task{task})
 }
 
-func (tm *TaskManager) CompleteTask(id int) {
+func (tm *TodoManager) CompleteTask(id int) {
 	task, err := tm.store.MarkTaskCompleted(id)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
-	printTasks([]types.Task{task})
+	printTasks([]Task{task})
 }
 
-func (tm *TaskManager) DeleteTask(id int) {
+func (tm *TodoManager) DeleteTask(id int) {
 	err := tm.store.DeleteTask(id)
 	if err != nil {
 		fmt.Println("Error:", err)
 	}
 }
 
-func printTasks(tasks []types.Task) {
+func printTasks(tasks []Task) {
 	if len(tasks) == 0 {
 		fmt.Println(
 			"Yayyy!, You have nothing in todolist, Enjoy your free time :)",
@@ -96,7 +118,7 @@ func printRow(w *tabwriter.Writer, id int, task, created string, status bool) {
 	maxWidth := 70
 
 	// Split the task into multiple lines if it's longer than maxWidth
-	wrappedTask := utils.WrapText(task, maxWidth)
+	wrappedTask := wrapText(task, maxWidth)
 
 	// Split the task into lines and print each line with proper alignment
 	taskLines := strings.Split(wrappedTask, "\n")
@@ -109,4 +131,26 @@ func printRow(w *tabwriter.Writer, id int, task, created string, status bool) {
 			fmt.Fprintf(w, "\t%s\t\n", line)
 		}
 	}
+}
+
+// wrapText wraps the given text into lines of max width
+func wrapText(text string, maxWidth int) (result string) {
+	words := strings.Split(text, " ")
+	line := ""
+
+	for _, word := range words {
+		if len(line)+len(word)+1 > maxWidth {
+			result += line + "\n"
+			line = word
+		} else {
+			if len(line) > 0 {
+				line += " "
+			}
+			line += word
+		}
+	}
+
+	result += line
+
+	return
 }
