@@ -20,14 +20,18 @@ func init() {
 	store := csv.NewStore("data.csv")
 	tm := todo.NewTodoManager(store)
 
+	var dueDate string
 	addCmd := &cobra.Command{
 		Use:   "add",
 		Short: "Add a new task to the todo list",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			tm.CreateTask(args[0])
+			fmt.Println(dueDate)
+			tm.CreateTask(args[0], dueDate)
 		},
 	}
+	addCmd.Flags().
+		StringVarP(&dueDate, "due", "d", "", "Due date of task")
 
 	var showAll bool
 	listCmd := &cobra.Command{

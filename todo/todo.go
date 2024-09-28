@@ -16,6 +16,7 @@ type Task struct {
 	Description string
 	Created     time.Time
 	IsComplete  time.Time
+	DueDate     string
 }
 
 func (t Task) ToCSVRecord() []string {
@@ -24,12 +25,13 @@ func (t Task) ToCSVRecord() []string {
 		t.Description,
 		t.Created.Format(time.RFC3339),
 		t.IsComplete.Format(time.RFC3339),
+		t.DueDate,
 	}
 }
 
 type Store interface {
 	GetTaskList() ([]Task, error)
-	CreateTask(description string) (Task, error)
+	CreateTask(description, dueDate string) (Task, error)
 	MarkTaskCompleted(id int) (Task, error)
 	DeleteTask(id int) error
 }
@@ -61,8 +63,8 @@ func (tm *TodoManager) ListTask(showAll bool) {
 	printTasks(tasks)
 }
 
-func (tm *TodoManager) CreateTask(description string) {
-	task, err := tm.store.CreateTask(description)
+func (tm *TodoManager) CreateTask(description, dueDate string) {
+	task, err := tm.store.CreateTask(description, dueDate)
 	if err != nil {
 		panic(err)
 	}
@@ -98,7 +100,7 @@ func printTasks(tasks []Task) {
 	defer w.Flush()
 
 	// Print the headers
-	fmt.Fprintln(w, "ID\tTask\tCreated\tDone")
+	fmt.Fprintln(w, "ID\tTask\tCreated\tDue\tDone")
 
 	// Print the rows
 	for _, task := range tasks {
@@ -107,13 +109,19 @@ func printTasks(tasks []Task) {
 			task.Id,
 			task.Description,
 			timediff.TimeDiff(task.Created),
+			task.DueDate,
 			!task.IsComplete.IsZero(),
 		)
 	}
 }
 
 // printRow is a helper function to wrap text in the Task column if necessary
-func printRow(w *tabwriter.Writer, id int, task, created string, status bool) {
+func printRow(
+	w *tabwriter.Writer,
+	id int,
+	task, created, dueDate string,
+	status bool,
+) {
 	// Define max width for the Task column
 	maxWidth := 70
 
@@ -125,7 +133,15 @@ func printRow(w *tabwriter.Writer, id int, task, created string, status bool) {
 	for i, line := range taskLines {
 		if i == 0 {
 			// Print the first line with the all  column
-			fmt.Fprintf(w, "%d\t%s\t%s\t%t\n", id, line, created, status)
+			fmt.Fprintf(
+				w,
+				"%d\t%s\t%s\t%s\t%t\n",
+				id,
+				line,
+				created,
+				dueDate,
+				status,
+			)
 		} else {
 			// Print subsequent lines with blank ID and Created columns for alignment
 			fmt.Fprintf(w, "\t%s\t\n", line)

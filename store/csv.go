@@ -15,7 +15,7 @@ type Store struct {
 	filePath string
 }
 
-var header = []string{"ID", "Description", "CreatedAt", "IsComplete"}
+var header = []string{"ID", "Description", "CreatedAt", "IsComplete", "DueDate"}
 
 func NewStore(filePath string) *Store {
 	return &Store{filePath: filePath}
@@ -35,7 +35,7 @@ func (s *Store) GetTaskList() ([]todo.Task, error) {
 	return tasks, nil
 }
 
-func (s *Store) CreateTask(description string) (todo.Task, error) {
+func (s *Store) CreateTask(description, dueDate string) (todo.Task, error) {
 	records, err := getRawCSVRecords(s.filePath)
 	if err != nil {
 		return todo.Task{}, err
@@ -47,6 +47,7 @@ func (s *Store) CreateTask(description string) (todo.Task, error) {
 		Description: description,
 		Created:     time.Now(),
 		IsComplete:  time.Time{},
+		DueDate:     dueDate,
 	}
 
 	addHeader := len(records) == 0 // if no existing records, add csv header
@@ -234,6 +235,7 @@ func csvRowsToTasks(records [][]string) ([]todo.Task, error) {
 			Description: record[1],
 			Created:     createdAt,
 			IsComplete:  isComplete,
+			DueDate:     record[4],
 		}
 
 		tasks = append(tasks, task)
