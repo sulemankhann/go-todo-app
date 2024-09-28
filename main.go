@@ -48,7 +48,7 @@ func init() {
 		Run: func(cmd *cobra.Command, args []string) {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				fmt.Println("Error: argument must be an integer")
+				fmt.Fprintln(os.Stderr, "Error: argument must be an integer")
 				return
 			}
 			tm.CompleteTask(id)
@@ -62,7 +62,7 @@ func init() {
 		Run: func(cmd *cobra.Command, args []string) {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				fmt.Println("Error: argument must be an integer")
+				fmt.Fprintln(os.Stderr, "Error: argument must be an integer")
 				return
 			}
 			tm.DeleteTask(id)
@@ -74,7 +74,7 @@ func init() {
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }

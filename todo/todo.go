@@ -72,7 +72,7 @@ func (tm *TodoManager) CreateTask(description string) {
 func (tm *TodoManager) CompleteTask(id int) {
 	task, err := tm.store.MarkTaskCompleted(id)
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Fprintln(os.Stderr, "Error:", err)
 		return
 	}
 	printTasks([]Task{task})
@@ -81,7 +81,7 @@ func (tm *TodoManager) CompleteTask(id int) {
 func (tm *TodoManager) DeleteTask(id int) {
 	err := tm.store.DeleteTask(id)
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Fprintln(os.Stderr, "Error:", err)
 	}
 }
 
