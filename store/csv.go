@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/sulemankhann/go-todo-app/todo"
@@ -128,6 +129,13 @@ func writeRecordsToCSV(filePath string, records [][]string) error {
 
 	defer file.Close()
 
+	// Lock the file for exclusive access
+	err = syscall.Flock(int(file.Fd()), syscall.LOCK_EX)
+	if err != nil {
+		return err
+	}
+	defer syscall.Flock(int(file.Fd()), syscall.LOCK_UN) // Unlock when done
+
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
@@ -146,6 +154,13 @@ func saveTaskToCSV(filePath string, task todo.Task, addHeader bool) error {
 	}
 
 	defer file.Close()
+
+	// Lock the file for exclusive access
+	err = syscall.Flock(int(file.Fd()), syscall.LOCK_EX)
+	if err != nil {
+		return err
+	}
+	defer syscall.Flock(int(file.Fd()), syscall.LOCK_UN) // Unlock when done
 
 	w := csv.NewWriter(file)
 	defer w.Flush()
@@ -172,6 +187,13 @@ func getRawCSVRecords(filePath string) ([][]string, error) {
 		return nil, err
 	}
 	defer file.Close()
+
+	// Apply a shared lock (multiple readers allowed, no writers)
+	err = syscall.Flock(int(file.Fd()), syscall.LOCK_SH)
+	if err != nil {
+		return nil, err
+	}
+	defer syscall.Flock(int(file.Fd()), syscall.LOCK_UN) // Unlock after reading
 
 	r := csv.NewReader(file)
 	records, err := r.ReadAll()
