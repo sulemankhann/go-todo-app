@@ -46,7 +46,7 @@ func (s *Store) CreateTask(description string) (todo.Task, error) {
 		Id:          id,
 		Description: description,
 		Created:     time.Now(),
-		IsComplete:  false,
+		IsComplete:  time.Time{},
 	}
 
 	addHeader := len(records) == 0 // if no existing records, add csv header
@@ -70,7 +70,7 @@ func (s *Store) MarkTaskCompleted(id int) (todo.Task, error) {
 
 	for _, t := range tasks {
 		if t.Id == id {
-			t.IsComplete = true
+			t.IsComplete = time.Now()
 			task = t
 		}
 		records = append(records, t.ToCSVRecord())
@@ -224,7 +224,7 @@ func csvRowsToTasks(records [][]string) ([]todo.Task, error) {
 			return nil, err
 		}
 
-		isComplete, err := strconv.ParseBool(record[3])
+		isComplete, err := time.Parse(time.RFC3339, record[3])
 		if err != nil {
 			return nil, err
 		}

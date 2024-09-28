@@ -15,7 +15,7 @@ type Task struct {
 	Id          int
 	Description string
 	Created     time.Time
-	IsComplete  bool
+	IsComplete  time.Time
 }
 
 func (t Task) ToCSVRecord() []string {
@@ -23,7 +23,7 @@ func (t Task) ToCSVRecord() []string {
 		strconv.Itoa(t.Id),
 		t.Description,
 		t.Created.Format(time.RFC3339),
-		strconv.FormatBool(t.IsComplete),
+		t.IsComplete.Format(time.RFC3339),
 	}
 }
 
@@ -51,7 +51,7 @@ func (tm *TodoManager) ListTask(showAll bool) {
 	if !showAll {
 		var incompleteTasks []Task
 		for _, t := range tasks {
-			if !t.IsComplete {
+			if t.IsComplete.IsZero() {
 				incompleteTasks = append(incompleteTasks, t)
 			}
 		}
@@ -107,7 +107,7 @@ func printTasks(tasks []Task) {
 			task.Id,
 			task.Description,
 			timediff.TimeDiff(task.Created),
-			task.IsComplete,
+			!task.IsComplete.IsZero(),
 		)
 	}
 }
