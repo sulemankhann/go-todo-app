@@ -17,7 +17,10 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	store := store.NewCSVStore("data.csv")
+	store, err := store.NewSqliteStore("./data.sql")
+	if err != nil {
+		panic(err)
+	}
 	tm := todo.NewTodoManager(store)
 
 	var dueDate string
@@ -26,7 +29,6 @@ func init() {
 		Short: "Add a new task to the todo list",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println(dueDate)
 			tm.CreateTask(args[0], dueDate)
 		},
 	}
