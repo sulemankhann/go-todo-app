@@ -1,4 +1,4 @@
-package csv
+package store
 
 import (
 	"encoding/csv"
@@ -11,17 +11,17 @@ import (
 	"github.com/sulemankhann/go-todo-app/todo"
 )
 
-type Store struct {
+type CSVStore struct {
 	filePath string
 }
 
 var header = []string{"ID", "Description", "CreatedAt", "IsComplete", "DueDate"}
 
-func NewStore(filePath string) *Store {
-	return &Store{filePath: filePath}
+func NewCSVStore(filePath string) *CSVStore {
+	return &CSVStore{filePath: filePath}
 }
 
-func (s *Store) GetTaskList() ([]todo.Task, error) {
+func (s *CSVStore) GetTaskList() ([]todo.Task, error) {
 	records, err := getRawCSVRecords(s.filePath)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (s *Store) GetTaskList() ([]todo.Task, error) {
 	return tasks, nil
 }
 
-func (s *Store) CreateTask(description, dueDate string) (todo.Task, error) {
+func (s *CSVStore) CreateTask(description, dueDate string) (todo.Task, error) {
 	records, err := getRawCSVRecords(s.filePath)
 	if err != nil {
 		return todo.Task{}, err
@@ -60,7 +60,7 @@ func (s *Store) CreateTask(description, dueDate string) (todo.Task, error) {
 	return task, nil
 }
 
-func (s *Store) MarkTaskCompleted(id int) (todo.Task, error) {
+func (s *CSVStore) MarkTaskCompleted(id int) (todo.Task, error) {
 	tasks, err := s.GetTaskList()
 	if err != nil {
 		return todo.Task{}, err
@@ -89,7 +89,7 @@ func (s *Store) MarkTaskCompleted(id int) (todo.Task, error) {
 	return task, nil
 }
 
-func (s *Store) DeleteTask(id int) error {
+func (s *CSVStore) DeleteTask(id int) error {
 	tasks, err := s.GetTaskList()
 	if err != nil {
 		return err

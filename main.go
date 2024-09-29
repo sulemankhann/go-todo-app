@@ -17,7 +17,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	store := csv.NewStore("data.csv")
+	store := store.NewCSVStore("data.csv")
 	tm := todo.NewTodoManager(store)
 
 	var dueDate string
